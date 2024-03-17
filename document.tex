@@ -25,7 +25,7 @@ import base64
 from fractions import Fraction as Fr
 import sympy as sp
 
-list_encode = lambda inp: base64.b64encode("#".join([f"{x:.4f}" if type(x)==float else str(x) for x in inp]).encode()).decode()
+list_encode = lambda inp: base64.b64encode("#".join([str(round(x,4)) if type(x)==float else str(x) for x in inp]).encode()).decode()
 
 def Aufgaben_to_Latex(data, rnd=False, enum_icon="1", **kwargs):
 	beginn = "\n\\begin{enumerate}[" + enum_icon +")]"
