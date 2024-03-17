@@ -25,6 +25,7 @@ import base64
 from fractions import Fraction as Fr
 import sympy as sp
 import pandas as pd
+import re
 
 list_encode = lambda inp: base64.b64encode("#".join([str(round(x,4)) if type(x)==float else str(x) for x in inp]).encode()).decode()
 
@@ -35,35 +36,37 @@ def Aufgaben_to_Latex(data, rnd=False, enum_icon="1", **kwargs):
 	erg = []
 	for i,v in data:
 		multi = False
-		if len(kwargs)>0:
-			U = kwargs["U"]
-			R = kwargs["R"]
-			I = kwargs["I"]
-			val1 = kwargs["val1"]
-			val2 = kwargs["val2"]
-			val3 = kwargs["val3"]
-			A = kwargs["A"]
-			B = kwargs["B"]
-		else:
-			U = random.randint(100,240)
-			R = round(random.randint(2,8)*0.1,1)
-			I = random.randint(2,8)
-			val1 = random.randint(1,200)
-			val2 = random.randint(1,200)
-			val3 = random.randint(1,200)
-			A = random.randint(1,200)
-			B = random.randint(1,200)
 		if type(v) == list:
 			multi = True
 			under = v[1:].copy()
 			v = v[0]
-		tmp = eval(i[1:]) if len(i) > 0 and i[0] == "!" else i
+
+		regx = re.findall("\$([A-Za-z0-9]+?)\(([0-9\-]+?),([0-9\-]+?)\)", v)
+		regx_v = {}
+		for kwi, kwv in kwargs.items():
+			regx_v[kwi] = kwv
+		for c,n1,n2 in regx:
+			tmp = random.randint(int(n1),int(n2))
+			v = v.replace(f'${c}({n1},{n2})', str(tmp))
+			i = i.replace(c, str(tmp))
+			regx_v[c] = tmp
+		
+		regx = re.findall("\$([A-Za-z0-9]+?)[\ \}]", v) # Looking 4 Default init
+		for c in regx:
+			if c not in regx_v.keys():
+				regx_v[c] = random.randint(1,500)
+			
+		for k,val in regx_v.items():
+			v = v.replace(f'${k}', str(val))
+			i = i.replace(k, str(val))
+			
+		tmp = eval(i[1:]) if len(i) > 0 and i[0] == "!" else ""
 		if tmp:
-			tmp = int(tmp) if int(tmp) == tmp else tmp
+			tmp = int(tmp) if int(tmp) == tmp else tmp  # macht aus 2.0  ->  2
 		erg.append(tmp)
-		auf.append("\n\\item \\ \\\\\n" + v.replace("$U", str(U)).replace("$I", str(I)).replace("$R", str(R)).replace("$val1", str(val1)).replace("$val2", str(val2)).replace("$val3", str(val3)).replace("$A", str(A)).replace("$B", str(B)))
+		auf.append("\n\\item \\ \\\\\n" + v)
 		if multi:
-			Aauf, Aerg = Aufgaben_to_Latex(under, False, "a", U=U, R=R, I=I, val1=val1, val2=val2, val3=val3, A=A, B=B)
+			Aauf, Aerg = Aufgaben_to_Latex(under, False, "a", **regx_v)
 			auf[-1] += Aauf
 			erg[-1] = Aerg
 	if rnd:
@@ -103,7 +106,8 @@ def gen_aufgaben(datafr, **kwargs):
 
 
 \begin{pycode}
-aufgaben = gen_aufgaben(pd.read_excel("beispiel.xlsx", "Tabellenblatt1"), Anderes=1, GEO=3, Phy=1)
+dataFrame = pd.read_excel("beispiel.xlsx", "Tabellenblatt1")
+aufgaben = gen_aufgaben(dataFrame, GEO=3, Anderes=2, more=1)
 
 auf_out, erg = Aufgaben_to_Latex(aufgaben, True)
 
