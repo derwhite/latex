@@ -112,6 +112,8 @@ url = f"http://ts.chbrath.de:5001/get/{list_encode(erg)}"
 qrimg = qrcode.make(url, border=2)
 qrimg.save("qr.png")
 
+qr_icon = '\\[ {\\includegraphics[scale=0.3]{"qr.png"}} \\]'
+
 \end{pycode}
 
 \begin{document}
@@ -119,6 +121,7 @@ qrimg.save("qr.png")
 	\huge
 	\textbf{Aufgaben:}\\
 	\normalsize
+	
 	\py{auf_out}
 	
 	\pagebreak
@@ -129,6 +132,6 @@ qrimg.save("qr.png")
 	\centering
 	\normalsize
 	\py{url}
-	\[ {\includegraphics[scale=0.2]{"qr.png"}} \]
+	\py{qr_icon}
 	
 \end{document}
