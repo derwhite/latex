@@ -24,6 +24,7 @@ import qrcode
 import base64
 from fractions import Fraction as Fr
 import sympy as sp
+import pandas as pd
 
 list_encode = lambda inp: base64.b64encode("#".join([str(round(x,4)) if type(x)==float else str(x) for x in inp]).encode()).decode()
 
@@ -77,29 +78,34 @@ def Aufgaben_to_Latex(data, rnd=False, enum_icon="1", **kwargs):
 	
 	auf_out = beginn + "".join(auf) + ending
 	return auf_out, erg
+
+
+def gen_aufgaben(datafr, **kwargs):
+    auf = []
+    for i, v in kwargs.items():
+        if v > len(datafr[i]):
+            exit(1)
+        pick = [x for x in range(len([x for x in datafr[i] if pd.notna(x)]))]
+        print("pick", i, pick)
+        random.shuffle(pick)
+        for j in pick[:v]:
+            aufg = datafr[i].iloc[j]
+            for k in datafr.iloc[j]:
+                if k == aufg:
+                    break
+                erg = k
+            aufg = aufg.strip()
+            if pd.isna(erg):
+                erg = ""
+            if "[" in aufg:
+                aufg = eval(aufg)
+            auf.append([erg.strip(), aufg])
+    return auf
 \end{pycode}
 
 
 \begin{pycode}
-aufgaben = [
-	
-["!U/I", "Bei einer Eingeschalteten Lampe wird ein Strom von $I A gemessen. An der Lampe liegen $U V an. Wie groß ist der Widerstand ?"],
-
-["!U**2/R", "Eine lose Klemme hat einen Übergangwiderstand von etwa $R Ohm bei einer Spannung von $U V. Welche Leistung entsteht hier?"],
-
-["!R*I", "Ein elektrischer Heizlüfter hat einen Widerstand von $R Ohm und belastet die Leitung mit $I A. Welche elektrische Spannung wird benötigt, um den Heizlüfter zu betreiben?"],
-
-["!U/(R*1000)", "In einem experimentellen Schaltkreis beträgt der Widerstand $R kOhm und die angelegte elektrische Spannung entspricht $U V . Wie groß ist die Stromstärke, die durch den Schaltkreis fließt?"],
-
-["!U/(R*1000)", "Ein elektrisches Gerät hat einen Widerstand von $R kOhm und wird mit einer Spannung von $U V betrieben. Berechne die Stromstärke, die durch das Gerät fließt."],
-
-["!val1+val2","Die fette alte wiegt $val1 kg und trägt noch eine tasche mit sich die $val2 kg wiegt. Wie schwer ist die Alte wenn die mit der Tasche in der hand auf der waage steht."],
-
-["!Fr(2,val1)+Fr(val3,val2)","$ \\frac{2}{$val1} + \\frac{$val3}{$val2} $"],
-
-["", ["Ein Quadrat hat eine Seiten länge von $val1 cm", ["!val1*4", "Wie groß ist der Umfang"], ["!val1**2", "Wie groß ist die Fläche"]]]
-
-]
+aufgaben = gen_aufgaben(pd.read_excel("beispiel.xlsx", "Tabellenblatt1"), Anderes=1, GEO=3, Phy=1)
 
 auf_out, erg = Aufgaben_to_Latex(aufgaben, True)
 
