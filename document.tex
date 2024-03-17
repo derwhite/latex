@@ -60,7 +60,7 @@ def Aufgaben_to_Latex(data, rnd=False, enum_icon="1", **kwargs):
 			v = v.replace(f'${k}', str(val))
 			i = i.replace(k, str(val))
 			
-		tmp = eval(i[1:]) if len(i) > 0 and i[0] == "!" else ""
+		tmp = eval(i) if len(i) > 0 else ""
 		if tmp:
 			tmp = int(tmp) if int(tmp) == tmp else tmp  # macht aus 2.0  ->  2
 		erg.append(tmp)
@@ -107,7 +107,7 @@ def gen_aufgaben(datafr, **kwargs):
 
 \begin{pycode}
 dataFrame = pd.read_excel("beispiel.xlsx", "Tabellenblatt1")
-aufgaben = gen_aufgaben(dataFrame, GEO=3, Anderes=2, more=1)
+aufgaben = gen_aufgaben(dataFrame, GEO=3, Anderes=1, Phy=1)
 
 auf_out, erg = Aufgaben_to_Latex(aufgaben, True)
 
