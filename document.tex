@@ -1,0 +1,130 @@
+\documentclass{article}
+\usepackage{array} % For customizing table column styles
+\usepackage[margin=1in, top=0.7in]{geometry}
+\usepackage{color}
+\usepackage[svgnames]{xcolor}
+\usepackage[datesep=.,style=ddmmyyyy]{datetime2}
+\usepackage[]{enumerate}
+\usepackage{tikz}
+\usepackage[german]{babel}
+\usepackage[autostyle=true,german=quotes]{csquotes}
+\usepackage{amsmath}
+\usepackage[official]{eurosym}
+\usepackage[ngerman, num]{isodate}
+\usepackage{pythontex}
+\usepackage{hyperref}
+\newcommand{\leadingzero}[1]{\ifnum #1<10 0\the#1\else\the#1\fi} 
+\newcommand{\todayI}{\leadingzero{\day}.\leadingzero{\month}.\the\year}
+
+
+\begin{pycode}
+import random
+import sys
+import qrcode
+import base64
+from fractions import Fraction as Fr
+import sympy as sp
+
+list_encode = lambda inp: base64.b64encode("#".join([f"{x:.4f}" if type(x)==float else str(x) for x in inp]).encode()).decode()
+
+def Aufgaben_to_Latex(data, rnd=False, enum_icon="1", **kwargs):
+	beginn = "\n\\begin{enumerate}[" + enum_icon +")]"
+	ending = "\n\\end{enumerate}\n"
+	auf = []
+	erg = []
+	for i,v in data:
+		multi = False
+		if len(kwargs)>0:
+			U = kwargs["U"]
+			R = kwargs["R"]
+			I = kwargs["I"]
+			val1 = kwargs["val1"]
+			val2 = kwargs["val2"]
+			val3 = kwargs["val3"]
+			A = kwargs["A"]
+			B = kwargs["B"]
+		else:
+			U = random.randint(100,240)
+			R = round(random.randint(2,8)*0.1,1)
+			I = random.randint(2,8)
+			val1 = random.randint(1,200)
+			val2 = random.randint(1,200)
+			val3 = random.randint(1,200)
+			A = random.randint(1,200)
+			B = random.randint(1,200)
+		if type(v) == list:
+			multi = True
+			under = v[1:].copy()
+			v = v[0]
+		tmp = eval(i[1:]) if len(i) > 0 and i[0] == "!" else i
+		if tmp:
+			tmp = int(tmp) if int(tmp) == tmp else tmp
+		erg.append(tmp)
+		auf.append("\n\\item \\ \\\\\n" + v.replace("$U", str(U)).replace("$I", str(I)).replace("$R", str(R)).replace("$val1", str(val1)).replace("$val2", str(val2)).replace("$val3", str(val3)).replace("$A", str(A)).replace("$B", str(B)))
+		if multi:
+			Aauf, Aerg = Aufgaben_to_Latex(under, False, "a", U=U, R=R, I=I, val1=val1, val2=val2, val3=val3, A=A, B=B)
+			auf[-1] += Aauf
+			erg[-1] = Aerg
+	if rnd:
+		tmp_auf = []
+		tmp_erg = []
+		while auf:
+			x = random.randint(0,len(auf)-1)
+			tmp_auf.append(auf.pop(x))
+			tmp_erg.append(erg.pop(x))
+		erg = tmp_erg
+		auf = tmp_auf
+	
+	auf_out = beginn + "".join(auf) + ending
+	return auf_out, erg
+\end{pycode}
+
+
+\begin{pycode}
+aufgaben = [
+	
+["!U/I", "Bei einer Eingeschalteten Lampe wird ein Strom von $I A gemessen. An der Lampe liegen $U V an. Wie groß ist der Widerstand ?"],
+
+["!U**2/R", "Eine lose Klemme hat einen Übergangwiderstand von etwa $R Ohm bei einer Spannung von $U V. Welche Leistung entsteht hier?"],
+
+["!R*I", "Ein elektrischer Heizlüfter hat einen Widerstand von $R Ohm und belastet die Leitung mit $I A. Welche elektrische Spannung wird benötigt, um den Heizlüfter zu betreiben?"],
+
+["!U/(R*1000)", "In einem experimentellen Schaltkreis beträgt der Widerstand $R kOhm und die angelegte elektrische Spannung entspricht $U V . Wie groß ist die Stromstärke, die durch den Schaltkreis fließt?"],
+
+["!U/(R*1000)", "Ein elektrisches Gerät hat einen Widerstand von $R kOhm und wird mit einer Spannung von $U V betrieben. Berechne die Stromstärke, die durch das Gerät fließt."],
+
+["!val1+val2","Die fette alte wiegt $val1 kg und trägt noch eine tasche mit sich die $val2 kg wiegt. Wie schwer ist die Alte wenn die mit der Tasche in der hand auf der waage steht."],
+
+["!Fr(2,val1)+Fr(val3,val2)","$ \\frac{2}{$val1} + \\frac{$val3}{$val2} $"],
+
+["", ["Ein Quadrat hat eine Seiten länge von $val1 cm", ["!val1*4", "Wie groß ist der Umfang"], ["!val1**2", "Wie groß ist die Fläche"]]]
+
+]
+
+auf_out, erg = Aufgaben_to_Latex(aufgaben, True)
+
+url = f"http://ts.chbrath.de:5001/get/{list_encode(erg)}"
+
+qrimg = qrcode.make(url, border=2)
+qrimg.save("qr.png")
+
+\end{pycode}
+
+\begin{document}
+	
+	\huge
+	\textbf{Aufgaben:}\\
+	\normalsize
+	\py{auf_out}
+	
+	\pagebreak
+	
+	\huge
+	\textbf{Loesungen:}\\\\
+	
+	\centering
+	\normalsize
+	\py{url}
+	\[ {\includegraphics[scale=0.2]{"qr.png"}} \]
+	
+\end{document}
