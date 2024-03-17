@@ -82,6 +82,7 @@ def Aufgaben_to_Latex(data, rnd=False, enum_icon="1", **kwargs):
 
 def gen_aufgaben(datafr, **kwargs):
     auf = []
+    getkey = {datafr.columns[a+1]:datafr.columns[a] for a in range(0, len(datafr.columns), 2)}
     for i, v in kwargs.items():
         if v > len(datafr[i]):
             exit(1)
@@ -90,10 +91,7 @@ def gen_aufgaben(datafr, **kwargs):
         random.shuffle(pick)
         for j in pick[:v]:
             aufg = datafr[i].iloc[j]
-            for k in datafr.iloc[j]:
-                if k == aufg:
-                    break
-                erg = k
+            erg = datafr[getkey[i]].iloc[j]
             aufg = aufg.strip()
             if pd.isna(erg):
                 erg = ""
