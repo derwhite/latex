@@ -48,14 +48,14 @@ def Aufgaben_to_Latex(data, rnd=False, enum_icon="1", **kwargs):
 		for c,n1,n2 in regx:
 			tmp = random.randint(int(n1),int(n2))
 			v = v.replace(f'${c}({n1},{n2})', str(tmp))
-			i = i.replace(c, str(tmp))
 			regx_v[c] = tmp
 		
 		regx = re.findall("\$([A-Za-z0-9]+?)[\ \}]", v) # Looking 4 Default init
 		for c in regx:
 			if c not in regx_v.keys():
 				regx_v[c] = random.randint(1,500)
-			
+		
+		regx_v = dict(sorted(regx_v.items(), key=lambda x: len(x[0]), reverse=True))
 		for k,val in regx_v.items():
 			v = v.replace(f'${k}', str(val))
 			i = i.replace(k, str(val))
@@ -107,7 +107,7 @@ def gen_aufgaben(datafr, **kwargs):
 
 \begin{pycode}
 dataFrame = pd.read_excel("beispiel.xlsx", "Tabellenblatt1")
-aufgaben = gen_aufgaben(dataFrame, GEO=3, Anderes=1, Phy=1)
+aufgaben = gen_aufgaben(dataFrame, Phy=1)
 
 auf_out, erg = Aufgaben_to_Latex(aufgaben, True)
 
